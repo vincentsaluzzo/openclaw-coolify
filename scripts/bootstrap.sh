@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 set -e
 
-STATE_DIR="/home/node/.moltbot"
-CONFIG_FILE="$STATE_DIR/moltbot.json"
-# We don't migrate clawdbot.json automatically here because volume names changed, 
-# so it's a fresh start for the new volume.
+# State directories - Moltbot/Clawdbot overlap
+# Binary might look for either depending on version
+MOLT_STATE="/home/node/.moltbot"
+CLAW_STATE="/home/node/.clawdbot"
+CONFIG_FILE="$MOLT_STATE/moltbot.json"
 WORKSPACE_DIR="/home/node/molt"
 
-mkdir -p "$STATE_DIR" "$WORKSPACE_DIR"
+mkdir -p "$MOLT_STATE" "$CLAW_STATE" "$WORKSPACE_DIR"
 
 # Ensure aliases work for interactive sessions
 echo "alias fd=fdfind" >> /home/node/.bashrc
 echo "alias bat=batcat" >> /home/node/.bashrc
 echo "alias ll='ls -alF'" >> /home/node/.bashrc
+echo "alias molty='moltbot'" >> /home/node/.bashrc
+echo "alias clawd='moltbot'" >> /home/node/.bashrc
 
 # Generate config on first boot
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -26,13 +29,13 @@ if [ ! -f "$CONFIG_FILE" ]; then
 cat >"$CONFIG_FILE" <<EOF
 {
   "meta": {
-    "lastTouchedVersion": "2026.1.25",
+    "lastTouchedVersion": "2026.1.24-3",
     "lastTouchedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   },
   "wizard": {
     "lastRunMode": "local",
     "lastRunAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-    "lastRunVersion": "2026.1.25",
+    "lastRunVersion": "2026.1.24-3",
     "lastRunCommand": "doctor"
   },
   "diagnostics": {
@@ -51,6 +54,8 @@ cat >"$CONFIG_FILE" <<EOF
       "debounceMs": 0
     },
     "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN:-}",
       "dmPolicy": "pairing",
       "groupPolicy": "allowlist",
       "streamMode": "partial"
@@ -166,7 +171,7 @@ cat >"$CONFIG_FILE" <<EOF
   "plugins": {
     "entries": {
       "telegram": {
-        "enabled": true
+        "enabled": $([ -n "$TELEGRAM_BOT_TOKEN" ] && echo true || echo false)
       },
       "whatsapp": {
         "enabled": true
@@ -190,9 +195,23 @@ cat >"$CONFIG_FILE" <<EOF
   }
 }
 EOF
-else
-  TOKEN="$(jq -r '.gateway.auth.token' "$CONFIG_FILE")"
 fi
+
+# Update TOKEN if it was not set (e.g. if config already existed)
+if [ -z "$TOKEN" ]; then
+  TOKEN="$(jq -r '.gateway.auth.token' "$CONFIG_FILE" 2>/dev/null || jq -r '.gateway.auth.token' "$MOLT_STATE/clawdbot.json" 2>/dev/null || echo "")"
+fi
+
+# Ensure all possible naming variations exist on every boot for robustness
+cp -f "$CONFIG_FILE" "$MOLT_STATE/clawdbot.json" 2>/dev/null || true
+cp -f "$CONFIG_FILE" "$CLAW_STATE/moltbot.json" 2>/dev/null || true
+cp -f "$CONFIG_FILE" "$CLAW_STATE/clawdbot.json" 2>/dev/null || true
+ln -sf "$CONFIG_FILE" "$MOLT_STATE/config.json" 2>/dev/null || true
+ln -sf "$CONFIG_FILE" "$CLAW_STATE/config.json" 2>/dev/null || true
+
+# Export state directory for the binary
+export CLAWDBOT_STATE_DIR="$MOLT_STATE"
+export MOLTBOT_STATE_DIR="$MOLT_STATE"
 
 # Resolve public URL (Coolify injects SERVICE_URL_MOLTBOT_18789 or SERVICE_FQDN_MOLTBOT)
 BASE_URL="${SERVICE_URL_MOLTBOT_18789:-${SERVICE_FQDN_MOLTBOT:+https://$SERVICE_FQDN_MOLTBOT}}"

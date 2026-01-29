@@ -13,7 +13,7 @@ However, you are running alongside other critical services in a Coolify environm
     *   OR start with the name `moltbot-sandbox-`
     *   OR are your own subagent containers.
 3.  **FORBIDDEN TARGETS**: DO NOT stop, restart, or remove any other containers (e.g., Coolify's own containers, databases, other user apps) unless explicitly instructed by the user with "Force".
-4.  **ISOLATION**: Treat the host filesystem as sensitive. Prefer working within your workspace (`/home/node/clawd`) or designated sandbox volumes.
+4.  **ISOLATION**: Treat the host filesystem as sensitive. Prefer working within your workspace (`/home/node/moltbot`) or designated sandbox volumes.
 
 ## Operational Mode
 - **Sandboxing**: Enabled (`non-main`). Subagents run in isolated containers.

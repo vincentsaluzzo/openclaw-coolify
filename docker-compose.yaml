@@ -20,6 +20,8 @@ services:
       CLAWDBOT_GATEWAY_BIND: ${MOLTBOT_GATEWAY_BIND:-auto}
       CLAWDBOT_GATEWAY_PORT: ${MOLTBOT_GATEWAY_PORT:-18789}
       # Tell the binary where to look for state/config
+      MOLTBOT_STATE_DIR: /home/node/.moltbot
+      MOLTBOT_WORKSPACE: /home/node/molt
       CLAWDBOT_STATE_DIR: /home/node/.moltbot
       CLAWDBOT_WORKSPACE: /home/node/molt
 
@@ -29,7 +31,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       KIMI_API_KEY: ${KIMI_API_KEY}
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:-${KIMI_API_KEY}}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      SANDBOX_CONTAINER: ${SANDBOX_CONTAINER:-false}
       
       # Optional integrations
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
@@ -112,7 +116,7 @@ services:
       - RUN_MIGRATIONS=1
       - CREATE_ADMIN=1
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin
+      - ADMIN_PASSWORD=admin123
       - BASE_URL=http://localhost:8080
 
   miniflux-db:

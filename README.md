@@ -68,6 +68,7 @@ You must provide **at least one** of the following keys to power the agent.
 | `MINIMAX_API_KEY` | Unlocks MiniMax M2.1 models (great performance/price). |
 | `GEMINI_API_KEY` | Google Gemini models. |
 | `KIMI_API_KEY` | Kimi / Moonshot AI models. |
+| `MOONSHOT_API_KEY` | Alias for `KIMI_API_KEY`. |
 
 ### 🔌 Integrations (Optional)
 Enable public URLs, deployments, or chat channels.

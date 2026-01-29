@@ -33,13 +33,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pass \
     && rm -rf /var/lib/apt/lists/*
 
-# Install rbw (Bitwarden CLI) - Not in Debian Bookworm repos
-RUN curl -L --output rbw.deb https://git.tozt.net/rbw/releases/deb/rbw_1.12.1_amd64.deb && \
-    dpkg -i rbw.deb && \
-    rm rbw.deb
+# Install rbw (Bitwarden CLI) - Support both AMD64 and ARM64
+# Temporarily disabled for ARM64 compatibility - building from source is required or valid deb url
+# RUN ARCH=$(dpkg --print-architecture) && \
+#     if [ "$ARCH" = "amd64" ]; then \
+#     URL="https://git.tozt.net/rbw/releases/deb/rbw_1.12.1_amd64.deb"; \
+#     elif [ "$ARCH" = "arm64" ]; then \
+#     URL="https://git.tozt.net/rbw/releases/deb/rbw_1.12.1_arm64.deb"; \
+#     else \
+#     echo "Unsupported architecture: $ARCH" && exit 1; \
+#     fi && \
+#     curl -L --output rbw.deb "$URL" && \
+#     dpkg -i rbw.deb && \
+#     rm rbw.deb
 
 # Install Cloudflare Tunnel (cloudflared)
-RUN curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && \
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -L --output cloudflared.deb "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}.deb" && \
     dpkg -i cloudflared.deb && \
     rm cloudflared.deb
 
@@ -65,7 +75,7 @@ ENV PATH="/root/.bun/bin:${PATH}"
 # Install Vercel & Marp (Slides) & QMD (Search)
 # Node & NPM are already provided by base image
 # QMD requires bun and global install
-RUN npm install -g yarn vercel @marp-team/marp-cli && \
+RUN npm install -g vercel @marp-team/marp-cli && \
     bun install -g https://github.com/tobi/qmd && \
     hash -r
 
@@ -88,27 +98,28 @@ RUN ln -s /usr/bin/fdfind /usr/bin/fd || true && \
 # Set up working directory
 WORKDIR /app
 
-# Run Moltbot install scripts
-# 1. Stable install
-ENV MOLT_BOT_BETA=false
-RUN curl -fsSL https://molt.bot/install.sh | bash
-
-# 2. Beta update
-ENV MOLT_BOT_BETA=true
-RUN curl -fsSL https://molt.bot/install.sh | bash -s -- --beta
-
 # Create necessary directories and set permissions
 # 'node' user already exists in the base image
 RUN mkdir -p /home/node/.moltbot /home/node/molt && \
     chown -R node:node /home/node/.moltbot /home/node/molt /app
 
-# Copy local scripts
-COPY scripts/bootstrap.sh /app/scripts/bootstrap.sh
-RUN chmod +x /app/scripts/bootstrap.sh
-
-# Switch to non-root user
+# Switch to non-root user for installation
 USER node
 WORKDIR /app
+
+# Set PATH for global npm binaries
+ENV PATH="/home/node/.npm-global/bin:${PATH}"
+
+# Run Moltbot install scripts as 'node' user
+# This ensures it installs to /home/node/.npm-global/bin
+ENV MOLT_BOT_BETA=false \
+    CLAWDBOT_NO_ONBOARD=1
+RUN curl -fsSL https://molt.bot/install.sh | bash && \
+    ln -s /home/node/.npm-global/bin/clawdbot /home/node/.npm-global/bin/moltbot || true
+
+# Copy local scripts (as node user since we already switched)
+COPY --chown=node:node scripts/bootstrap.sh /app/scripts/bootstrap.sh
+RUN chmod +x /app/scripts/bootstrap.sh
 
 # Expose the application port
 EXPOSE 18789
