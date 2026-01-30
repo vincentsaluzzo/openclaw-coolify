@@ -1,8 +1,10 @@
-# Moltbot (Coolify Edition)
+# OpenClaw (Coolify Edition)
 
-**Your Complete Autonomous AI Office.**
+**Your Assistant. Your Machine. Your Rules.**
 
-This isn't just a chatbot—it's a full-fledged **AI Workforce** running in your own private cloud (Coolify). It manages staff (agents), remembers corporate knowledge, and can even open its own doors to the public web.
+OpenClaw is an open agent platform that runs on your machine and works from the chat apps you already use. WhatsApp, Telegram, Discord, Slack, Teams—wherever you are, your AI assistant follows.
+
+Unlike SaaS assistants where your data lives on someone else’s servers, OpenClaw runs where you choose—laptop, homelab, or VPS. Your infrastructure. Your keys. Your data.
 
 ---
 
@@ -11,7 +13,7 @@ This isn't just a chatbot—it's a full-fledged **AI Workforce** running in your
 Think of this Docker container not as an app, but as an **Office Building**.
 
 ### 1. The Staff (Multi-Agent System)
-*   **The Manager (Gateway)**: The main `moltbot` process. It hires "staff" to do work.
+*   **The Manager (Gateway)**: The main `openclaw` process. It hires "staff" to do work.
 *   **The Workers (Sandboxes)**: When you ask for a complex coding task, the Manager spins up **isolated Docker containers** (sub-agents).
     *   They have their own Linux tools (Python, Node, Go).
     *   They work safely in a sandbox, then report back.
@@ -19,8 +21,8 @@ Think of this Docker container not as an app, but as an **Office Building**.
 
 ### 2. Corporate Memory (Long-Term Storage)
 Your office never forgets, thanks to a 3-tier memory architecture:
-*   **The Filing Cabinet (`moltbot-workspace`)**: A persistent Docker Volume where agents write code, save files, and store heavy data. Survives restarts.
-*   **The Brain (Internal SQLite)**: Moltbot's native transactional memory for conversations and facts.
+*   **The Filing Cabinet (`openclaw-workspace`)**: A persistent Docker Volume where agents write code, save files, and store heavy data. Survives restarts.
+*   **The Brain (Internal SQLite)**: OpenClaw's native transactional memory for conversations and facts.
 *   **The Library (Qdrant)**: A dedicated Vector Database (`qdrant:6333`) for advanced RAG.
 *   **The Archive (Linkding)**: A self-hosted bookmark manager (`linkding:9090`) to save important research, docs, and links.
 *   **The Newsroom (Miniflux)**: An RSS feed reader (`miniflux:8080`) backed by Postgres. Your agent can stay updated on tech news automatically.
@@ -34,13 +36,13 @@ Your agent can securely manage credentials without leaking them:
 Need to show a client your work?
 *   The agent can start a web server (e.g., Next.js on port 3000).
 *   It uses `cloudflared` to instantly create a **secure public URL** (e.g., `https://project-viz.trycloudflare.com`).
-*   No router port forwarding required.
+*   *No router port forwarding required.*
 
-### 4. Zero-Config & Production Ready
+### 5. Zero-Config & Production Ready
 *   **Pre-installed Tools**: `gh` (GitHub), `vercel`, `bun`, `python`, `ripgrep`.
 *   **Office Suite**: `pandoc` (Docs), `marp` (Slides), `csvkit` (Excel), `qmd` (Local AI Search).
 *   **Secure**: All sub-agents are firewalled.
-*   **Self-Healing**: Docker volumes ensure `moltbot-config` and `moltbot-workspace` persist forever.
+*   **Self-Healing**: Docker volumes ensure `openclaw-config` and `openclaw-workspace` persist forever.
 
 ---
 
@@ -79,7 +81,7 @@ Enable public URLs, deployments, or chat channels.
 | `CF_TUNNEL_TOKEN` | Cloudflare Tunnel token for exposing agent-created apps (Public URLs). |
 | `VERCEL_TOKEN` | For deploying apps to Vercel (`vercel deploy --token ...`). |
 | `GITHUB_TOKEN` | For creating repos/PRs (`gh auth login --with-token`). |
-| `MOLTBOT_GATEWAY_PORT` | Internal port (Default: `18789`). Only change if needed. |
+| `OPENCLAW_GATEWAY_PORT` | Internal port (Default: `18789`). Only change if needed. |
 
 > **Pro Tip**: You can simply copy the contents of [.env.example](.env.example) into Coolify's bulk edit view.
 
@@ -90,17 +92,17 @@ Once the container is running and healthy:
 
 1.  **Access the Dashboard**: 
     - Open the **Service Logs** in Coolify.
-    - Look for: `🦞 MOLTBOT READY`.
+    - Look for: `🦞 OPENCLAW READY`.
     - You will see a **Dashboard URL** with a token (e.g., `http://.../?token=xyz`).
-    - **Click that link** to access your Moltbot Gateway UI.
+    - **Click that link** to access your OpenClaw Gateway UI.
 2.  **Approve Your Device**: 
     - You will see an "Unauthorized" or pairing screen (this is normal). 
     - Open the **Service Terminal** in Coolify.
-    - Run: `molt-approve`
+    - Run: `openclaw-approve`
     - > [!WARNING]
-    - > **Security Note**: `molt-approve` is a break-glass utility that auto-accepts ALL pending pairing requests. Only run this immediately after accessing the URL yourself. Do not leave it running or use it when you don't recognize a request.
+    - > **Security Note**: `openclaw-approve` is a break-glass utility that auto-accepts ALL pending pairing requests. Only run this immediately after accessing the URL yourself. Do not leave it running or use it when you don't recognize a request.
 3.  **Guided Onboarding**: To configure your agent's personality and skills:
-    - In the terminal, run: `moltbot onboard`
+    - In the terminal, run: `openclaw onboard`
     - Follow the interactive wizard.
 4.  **Configure Channels**: Go to the **Channels** tab in the dashboard to link WhatsApp, Telegram, etc.
 
@@ -108,7 +110,7 @@ Once the container is running and healthy:
 
 ## 💬 Channel Setup
 
-Moltbot lives where you work. You can connect it to WhatsApp, Telegram, Discord, etc.
+OpenClaw lives where you work. You can connect it to WhatsApp, Telegram, Discord, etc.
 
 ### 📱 Telegram
 **Fastest setup.**
@@ -117,16 +119,16 @@ Moltbot lives where you work. You can connect it to WhatsApp, Telegram, Discord,
 3.  Add `TELEGRAM_BOT_TOKEN` to your Coolify Environment Variables.
 4.  **Redeploy** (or just restart).
 5.  DM your new bot. It will ask for a **Pairing Code**.
-6.  Go to your Moltbot Dashboard > **Pairing** to approve it.
+6.  Go to your OpenClaw Dashboard > **Pairing** to approve it.
     *   *Docs: [Telegram Channel Guide](docs/channels/telegram.md)*
 
 ### 🟢 WhatsApp
 **Requires scanning a QR code.**
-1.  Go to your Moltbot Dashboard (from the logs).
+1.  Go to your OpenClaw Dashboard (from the logs).
 2.  Navigate to **Channels** > **WhatsApp**.
 3.  Open WhatsApp on your phone > **Linked Devices** > **Link a Device**.
 4.  Scan the QR code shown on the dashboard.
-5.  **Done!** You can now chat with Moltbot.
+5.  **Done!** You can now chat with OpenClaw.
     *   *Docs: [WhatsApp Channel Guide](docs/channels/whatsapp.md)*
 
 ### ⚡ Other Channels
@@ -139,7 +141,7 @@ You can verify status or manage other channels (Discord, Slack) via the dashboar
 
 - **Authentication**: Dashboard is token-protected. New chat users must be "paired" (approved) first.
 - **Docker Proxy**: This setup uses a **Sockety Proxy (Sidecar)** pattern.
-    - Moltbot talks to a restricted Docker API proxy (`tcp://docker-proxy:2375`).
+    - OpenClaw talks to a restricted Docker API proxy (`tcp://docker-proxy:2375`).
     - **Blocked**: Swarm, Secrets, System, Volumes, and other critical host functions.
     - **Allowed**: Only what's needed for sandboxing (Containers, Images, Networks).
 - **Isolation**: Sub-agents run in disposable containers. `SOUL.md` rules forbid the agent from touching your other Coolify services.

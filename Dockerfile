@@ -80,23 +80,28 @@ WORKDIR /app
 # ✅ FINAL PATH (important)
 ENV PATH="/usr/local/bin:/usr/bin:/bin:/root/.local/bin:/root/.npm-global/bin:/root/.bun/bin:/root/.bun/install/global/bin:/root/.claude/bin:/root/.kimi/bin"
 
-# Moltbot install
-ARG MOLT_BOT_BETA=false
-ENV MOLT_BOT_BETA=${MOLT_BOT_BETA} \
+# OpenClaw install
+ARG OPENCLAW_BETA=false
+ENV OPENCLAW_BETA=${OPENCLAW_BETA} \
     CLAWDBOT_NO_ONBOARD=1 \
     NPM_CONFIG_UNSAFE_PERM=true
 
-RUN curl -fsSL https://molt.bot/install.sh | bash && \
-    if command -v moltbot >/dev/null 2>&1; then \
-    echo "✅ moltbot binary found"; \
-    elif command -v clawdbot >/dev/null 2>&1; then \
-    echo "🔁 clawdbot found, creating moltbot alias"; \
-    ln -sf "$(command -v clawdbot)" /usr/local/bin/moltbot; \
+RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
+    npm install -g clawdbot@beta; \
     else \
-    echo "❌ Moltbot install failed (no clawdbot or moltbot found)"; \
+    npm install -g clawdbot; \
+    fi && \
+    if command -v openclaw >/dev/null 2>&1; then \
+    echo "✅ openclaw binary found"; \
+    # Create aliases for backward compatibility
+    ln -sf "$(command -v openclaw)" /usr/local/bin/moltbot; \
+    ln -sf "$(command -v openclaw)" /usr/local/bin/clawdbot; \
+    else \
+    echo "❌ OpenClaw install failed (binary 'openclaw' not found)"; \
     exit 1; \
     fi
 
+RUN bun pm -g untrusted
 # AI Tool Suite
 RUN bun install -g @openai/codex @google/gemini-cli opencode-ai && \
     curl -fsSL https://claude.ai/install.sh | bash && \
@@ -106,8 +111,8 @@ RUN ln -sf /root/.claude/bin/claude /usr/local/bin/claude || true && \
     ln -sf /root/.kimi/bin/kimi /usr/local/bin/kimi || true
 
 COPY scripts/bootstrap.sh /app/scripts/bootstrap.sh
-COPY scripts/molt-approve.sh /usr/local/bin/molt-approve
-RUN chmod +x /app/scripts/bootstrap.sh /usr/local/bin/molt-approve
+COPY scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve
+RUN chmod +x /app/scripts/bootstrap.sh /usr/local/bin/openclaw-approve
 
 EXPOSE 18789
 CMD ["bash", "/app/scripts/bootstrap.sh"]
