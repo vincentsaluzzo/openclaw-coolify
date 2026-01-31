@@ -111,7 +111,8 @@ RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
     exit 1; \
     fi
 
-RUN bun pm -g untrusted
+RUN bun pm -g untrusted  \
+ || echo "Skipping bun pm -g untrusted on this platform"
 # AI Tool Suite
 RUN bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent && \
     curl -fsSL https://claude.ai/install.sh | bash && \
