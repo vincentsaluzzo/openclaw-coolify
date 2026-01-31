@@ -66,7 +66,6 @@ RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/* &&
 ENV PATH="/root/.bun/bin:/root/.bun/install/global/bin:${PATH}"
 
 # Install Vercel, Marp, QMD
-RUN bun install -g vercel @marp-team/marp-cli https://github.com/tobi/qmd && hash -r
 RUN bun install -g vercel \
  || echo "Skipping optional vercel global tools on this platform"
 
