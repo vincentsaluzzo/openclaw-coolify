@@ -67,7 +67,15 @@ ENV PATH="/root/.bun/bin:/root/.bun/install/global/bin:${PATH}"
 
 # Install Vercel, Marp, QMD
 RUN bun install -g vercel @marp-team/marp-cli https://github.com/tobi/qmd && hash -r
+RUN bun install -g vercel \
+ || echo "Skipping optional vercel global tools on this platform"
 
+RUN bun install -g @marp-team/marp-cli\
+ || echo "Skipping optional marp-cli global tools on this platform"
+
+ RUN bun install -g https://github.com/tobi/qmd \
+ || echo "Skipping optional qmd global tools on this platform"
+ 
 # Configure QMD Persistence
 ENV XDG_CACHE_HOME="/root/.openclaw/cache"
 
