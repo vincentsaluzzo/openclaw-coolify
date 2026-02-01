@@ -61,22 +61,23 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install Bun
 ENV BUN_INSTALL_NODE=0
 ENV BUN_INSTALL="/root/.bun"
-RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/* && \
-    curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:/root/.bun/install/global/bin:${PATH}"
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/* &&
 
-RUN uname -m && which bun || true
-RUN (file "$(which bun)" || true) && (bun --version || true)
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
-# Install Vercel, Marp, QMD
-RUN bun install -g vercel \
- || echo "Skipping optional vercel global tools on this platform"
+# pnpm global binaries need a dedicated home in PATH
+ENV PNPM_HOME=/pnpm
+ENV PATH="${PNPM_HOME}:${PATH}"
 
-RUN bun install -g @marp-team/marp-cli\
- || echo "Skipping optional marp-cli global tools on this platform"
+RUN corepack enable \
+  && corepack prepare pnpm@latest --activate \
+  && pnpm --version
 
- RUN bun install -g https://github.com/tobi/qmd \
- || echo "Skipping optional qmd global tools on this platform"
+# Install Vercel, Marp, QMD (optional)
+RUN pnpm add -g vercel || echo "Skipping optional vercel global tools on this platform"
+RUN pnpm add -g @marp-team/marp-cli  || echo "Skipping optional marp-cli global tools on this platform"
+RUN pnpm add -g github:tobi/qmd || echo "Skipping optional qmd global tools on this platform"
+
  
 # Configure QMD Persistence
 ENV XDG_CACHE_HOME="/root/.openclaw/cache"
@@ -114,10 +115,13 @@ RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
     exit 1; \
     fi
 
-RUN bun pm -g untrusted  \
- || echo "Skipping bun pm -g untrusted on this platform"
 # AI Tool Suite
-# RUN bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent && \
+RUN pnpm add -g @openai/codex || echo "Skipping @openai/codex on this platform"
+RUN pnpm add -g @google/gemini-cli || echo "Skipping @google/gemini-cli on this platform"
+RUN pnpm add -g opencode-ai || echo "Skipping opencode-ai on this platform"
+RUN pnpm add -g @steipete/summarize || echo "Skipping @steipete/summarize on this platform"
+RUN pnpm add -g @hyperbrowser/agent || echo "Skipping @hyperbrowser/agent on this platform"
+
 RUN curl -fsSL https://claude.ai/install.sh | bash
 RUN curl -L https://code.kimi.com/install.sh | bash
 
