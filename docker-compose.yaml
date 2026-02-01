@@ -7,7 +7,6 @@ services:
     environment:
       REGISTRY_HTTP_SECRET: ${SERVICE_BASE64_REGISTRY}
   openclaw:
-    platform: linux/arm64/v8
     build:
       context: .
       args:
