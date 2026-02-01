@@ -61,7 +61,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install Bun
 ENV BUN_INSTALL_NODE=0
 ENV BUN_INSTALL="/root/.bun"
-RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/* &&
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
 
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
